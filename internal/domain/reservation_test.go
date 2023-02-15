@@ -50,7 +50,7 @@ func TestWhenReservationIsFineThenValidShouldReturnNilError(t *testing.T) {
 
 func TestWhenNumberIsNotPositiveThenValidShouldReturnError(t *testing.T) {
 	formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
-		errorNonPositiveInvalidNumber)
+		errorDetailNonPositiveInvalidNumber)
 	expectedError := errors.New(formattedError)
 	r := &Reservation{ClientId: "cheems", Number: -8}
 
@@ -64,6 +64,17 @@ func TestWhenClientIDIsEmptyThenValidShouldReturnError(t *testing.T) {
 	formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatClientID,
 		errorDetailEmptyClientID)
 	expectedError := errors.New(formattedError)
+
+	err := r.Validate()
+
+	assert.Equal(t, expectedError, err)
+}
+
+func TestWhenNumberIsZeroOrNotFoundThenValidShouldReturnError(t *testing.T) {
+	formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
+		errorDetailZeroOrNotFoundNumber)
+	expectedError := errors.New(formattedError)
+	r := &Reservation{ClientId: "cheems"}
 
 	err := r.Validate()
 

@@ -7,6 +7,7 @@ import (
 
 type ReservationApp interface {
 	CreateReservation(reservation domain.Reservation) error
+	ConsultReservationAll() ([]domain.Reservation, error)
 }
 
 type ReservationApplication struct {
@@ -15,4 +16,8 @@ type ReservationApplication struct {
 
 func (r *ReservationApplication) CreateReservation(reservation domain.Reservation) error {
 	return r.Repository.MakeReservation(reservation)
+}
+
+func (r *ReservationApplication) ConsultReservationAll() ([]domain.Reservation, error) {
+	return r.Repository.GetAllReservations()
 }

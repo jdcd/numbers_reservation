@@ -10,14 +10,15 @@ import (
 )
 
 const (
-	errorFormatClientID           = "invalid clientID format"
-	errorDetailEmptyClientID      = "the field clientID cannot be empty"
-	errorDetailClientIDMaxLen     = "the maximum allowed size of the clientID is %d"
-	errorFormatNumber             = "invalid number format"
-	errorInvalidNumber            = "the available numbers are the range [1-%d]"
-	errorNonPositiveInvalidNumber = "the number must be positive"
-	defaultMaxClientIDLen         = 128
-	defaultMaxNumberValue         = 1000
+	errorFormatClientID                 = "invalid clientID format"
+	errorDetailEmptyClientID            = "the field clientID cannot be empty"
+	errorDetailClientIDMaxLen           = "the maximum allowed size of the clientID is %d"
+	errorFormatNumber                   = "invalid number format"
+	errorInvalidNumber                  = "the available numbers are the range [1-%d]"
+	errorDetailNonPositiveInvalidNumber = "the number must be positive"
+	errorDetailZeroOrNotFoundNumber     = "the field number cannot be empty or 0"
+	defaultMaxClientIDLen               = 128
+	defaultMaxNumberValue               = 1000
 )
 
 type Reservation struct {
@@ -58,9 +59,16 @@ func (r *Reservation) checkClientID() error {
 }
 
 func (r *Reservation) checkNumber() error {
-	if r.Number < 1 {
+	if r.Number == 0 {
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
-			errorNonPositiveInvalidNumber)
+			errorDetailZeroOrNotFoundNumber)
+		//ToDo add Logger
+		return errors.New(formattedError)
+	}
+
+	if r.Number < 0 {
+		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
+			errorDetailNonPositiveInvalidNumber)
 		//ToDo add Logger
 		return errors.New(formattedError)
 	}
