@@ -15,6 +15,7 @@ func SetupRouter(dependencies *RouterDependencies) *gin.Engine {
 
 	v1Reservation := v1.Group("/reservation")
 	v1Reservation.POST("", dependencies.ReservationController.PostReservation)
+	v1Reservation.GET("", dependencies.ReservationController.GetAllReservation)
 
 	return router
 }

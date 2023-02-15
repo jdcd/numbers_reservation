@@ -13,3 +13,8 @@ func (m *ReservationRepositoryMock) MakeReservation(reservation domain.Reservati
 	args := m.Called(reservation)
 	return args.Error(0)
 }
+
+func (m *ReservationRepositoryMock) GetAllReservations() ([]domain.Reservation, error) {
+	args := m.Called()
+	return args.Get(0).([]domain.Reservation), args.Error(1)
+}

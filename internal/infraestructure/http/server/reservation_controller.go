@@ -41,3 +41,14 @@ func (r ReservationController) PostReservation(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusCreated, newReservation)
 }
+
+func (r ReservationController) GetAllReservation(c *gin.Context) {
+	reservations, err := r.ReservationApp.ConsultReservationAll()
+	if err != nil {
+		apiError := api_error.MapApiError(err)
+		c.IndentedJSON(apiError.Code, apiError)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, reservations)
+}

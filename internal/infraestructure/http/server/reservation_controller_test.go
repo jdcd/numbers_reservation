@@ -77,7 +77,7 @@ func Test_WhenPostReservationRequestHasInvalidFormatThenControllerShouldReturn40
 
 }
 
-func Test_WhenApplicationCrashThenControllerShouldReturn500(t *testing.T) {
+func Test_WhenApplicationCrashThenPostControllerShouldReturn500(t *testing.T) {
 	repositoryMock := &mock.ReservationRepositoryMock{}
 	router := getMockedRouter(repositoryMock)
 	errorReason := "storage not available"
@@ -101,6 +101,47 @@ func Test_WhenApplicationCrashThenControllerShouldReturn500(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 	repositoryMock.AssertExpectations(t)
 
+}
+
+func Test_WhenApplicationCrashThenGetAllReservationControllerShouldReturn500(t *testing.T) {
+	repositoryMock := &mock.ReservationRepositoryMock{}
+	router := getMockedRouter(repositoryMock)
+	errorReason := "storage not available"
+	errorExpected := errors.New(errorReason)
+	expectedStruct := api_error.ApiError{
+		Code:         http.StatusInternalServerError,
+		ErrorMessage: errorReason,
+		Message:      "internal server error happens when try to process your request",
+	}
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest(http.MethodGet, "/v1/reservation", nil)
+	var responseStruck api_error.ApiError
+	repositoryMock.On("GetAllReservations").Return([]domain.Reservation{}, errorExpected).Once()
+
+	router.ServeHTTP(recorder, request)
+	_ = json.Unmarshal(recorder.Body.Bytes(), &responseStruck)
+
+	assert.Equal(t, expectedStruct, responseStruck)
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+	repositoryMock.AssertExpectations(t)
+}
+
+func Test_WhenApplicationResponseIsOkThenGetAllReservationControllerShouldReturnSuccess200WithData(t *testing.T) {
+	repositoryMock := &mock.ReservationRepositoryMock{}
+	router := getMockedRouter(repositoryMock)
+	expectedResponse := []domain.Reservation{domain.Reservation{ClientId: "cheems", Number: 5}}
+
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest(http.MethodGet, "/v1/reservation", nil)
+	var responseStruck []domain.Reservation
+	repositoryMock.On("GetAllReservations").Return(expectedResponse, nil).Once()
+
+	router.ServeHTTP(recorder, request)
+	_ = json.Unmarshal(recorder.Body.Bytes(), &responseStruck)
+
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	assert.Equal(t, expectedResponse, responseStruck)
+	repositoryMock.AssertExpectations(t)
 }
 
 func getMockedRouter(repository ports.ReservationRepository) *gin.Engine {
