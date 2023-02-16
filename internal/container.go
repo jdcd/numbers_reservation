@@ -2,7 +2,8 @@ package internal
 
 import (
 	"github.com/jdcd/numbers_reservation/internal/application"
-	"github.com/jdcd/numbers_reservation/internal/infraestructure/adapter"
+	"github.com/jdcd/numbers_reservation/internal/domain/ports"
+	"github.com/jdcd/numbers_reservation/internal/infraestructure/adapter/mongo"
 	"github.com/jdcd/numbers_reservation/internal/infraestructure/http/server"
 )
 
@@ -20,6 +21,12 @@ func getReservationController() *server.ReservationController {
 
 func getReservationApp() application.ReservationApp {
 	return &application.ReservationApplication{
-		Repository: &adapter.TempHappyMock{},
+		Repository: getReservationRepository(),
+	}
+}
+
+func getReservationRepository() ports.ReservationRepository {
+	return &mongo.ReservationRepositoryMongo{
+		Coll: mongo.GetCollection(),
 	}
 }

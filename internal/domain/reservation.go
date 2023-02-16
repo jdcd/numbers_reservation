@@ -22,8 +22,8 @@ const (
 )
 
 type Reservation struct {
-	ClientId string `json:"client_id,omitempty"`
-	Number   int    `json:"number,omitempty"`
+	ClientId string `bson:"_id"  json:"client_id,omitempty"`
+	Number   int    `bson:"reservation_number" json:"number,omitempty"`
 }
 
 func (r *Reservation) Validate() error {

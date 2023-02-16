@@ -14,6 +14,7 @@ const (
 	ConnectionError           = "connectionError"
 	DataValidation            = "dataValidation"
 	ThirdPart                 = "thirdPart"
+	BusinessRule              = "businessRUle"
 )
 
 const (
@@ -46,7 +47,7 @@ func MapApiError(err error) ApiError {
 	errorDetail := parts[2]
 
 	switch errorType {
-	case ThirdPart, ConnectionError, DataValidation, DataNotFound:
+	case ThirdPart, ConnectionError, DataValidation, DataNotFound, BusinessRule:
 		return ApiError{
 			Code:         selectStatusCode(errorType),
 			Message:      errorMessage,
@@ -63,7 +64,7 @@ func selectStatusCode(errorType ErrorType) int {
 		return http.StatusInternalServerError
 	case DataValidation:
 		return http.StatusBadRequest
-	case DataNotFound:
+	case DataNotFound, BusinessRule:
 		return http.StatusOK
 	default:
 		return http.StatusInternalServerError
