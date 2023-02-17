@@ -24,8 +24,20 @@ docker-compose
         docker-compose build
         docker-compose up
 
+### Basic Request
+Get reservations
+    
+    curl --location 'http://localhost:8080/v1/reservation'
+
+Create new reservations
 
 
+    curl --location 'http://localhost:8080/v1/reservation' \
+    --header 'Content-Type: application/json' \
+    --data '{
+        "client_id": "cheems",
+        "number": 35
+    }'
 # Technologies
 
 - [docker](https://www.docker.com/)
