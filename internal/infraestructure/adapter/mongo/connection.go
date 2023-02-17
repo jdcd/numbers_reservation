@@ -2,14 +2,12 @@ package mongo
 
 import (
 	"context"
-	"log"
+	"github.com/jdcd/numbers_reservation/pkg"
 	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-const queryConnectionPattern = "mongodb://%s:%s@%s:%s"
 
 type configMongoConnection struct {
 	Collection string
@@ -22,12 +20,12 @@ func GetCollection() *mongo.Collection {
 	clientOptions := options.Client().ApplyURI(cd.Url)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		pkg.ErrorLogger().Fatal(err)
 	}
 
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		log.Fatal(err)
+		pkg.ErrorLogger().Fatal(err)
 	}
 
 	collection := client.Database(cd.Database).Collection(cd.Collection)

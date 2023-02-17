@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jdcd/numbers_reservation/pkg"
 	"strings"
 
 	"github.com/jdcd/numbers_reservation/internal/domain"
@@ -24,6 +25,8 @@ const (
 	duplicateReservationErrorFlag    = "write exception: write errors: [E11000 duplicate key error collection: numbers_reservation.reservations index: reservation_number_1"
 	duplicateReservationErrorMessage = "each number only belongs to one client"
 	duplicateReservationErrorDetail  = "reservation: %d is already taken"
+	standardLoggerFormat             = "%s, %s \n"
+	unclosedConnectionWarning        = "unclosed mongo connection %s \n"
 )
 
 type ReservationRepositoryMongo struct {
@@ -36,7 +39,6 @@ func (r *ReservationRepositoryMongo) MakeReservation(reservation domain.Reservat
 		return r.processError(err, reservation)
 	}
 
-	//ToDo add Logger
 	return nil
 }
 
@@ -44,7 +46,7 @@ func (r *ReservationRepositoryMongo) GetAllReservations() ([]domain.Reservation,
 	cur, err := r.Coll.Find(context.TODO(), bson.D{{}}, options.Find())
 	if err != nil {
 		formattedError := api_error.CreateFormatError(api_error.ConnectionError, errorFindMessage, err.Error())
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(standardLoggerFormat, errorFindMessage, err.Error())
 
 		return []domain.Reservation{}, errors.New(formattedError)
 	}
@@ -53,7 +55,7 @@ func (r *ReservationRepositoryMongo) GetAllReservations() ([]domain.Reservation,
 	if err := cur.Err(); err != nil {
 		formattedError := api_error.CreateFormatError(api_error.ConnectionError, errorFindMessage,
 			err.Error())
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(standardLoggerFormat, errorFindMessage, err.Error())
 
 		return []domain.Reservation{}, errors.New(formattedError)
 	}
@@ -64,7 +66,7 @@ func (r *ReservationRepositoryMongo) GetAllReservations() ([]domain.Reservation,
 		if err != nil {
 			formattedError := api_error.CreateFormatError(api_error.ConnectionError, errorFindMessage,
 				err.Error())
-			//ToDo add Logger
+			pkg.ErrorLogger().Printf(standardLoggerFormat, errorFindMessage, err.Error())
 
 			return []domain.Reservation{}, errors.New(formattedError)
 		}
@@ -75,14 +77,14 @@ func (r *ReservationRepositoryMongo) GetAllReservations() ([]domain.Reservation,
 	if len(results) == 0 {
 		formattedError := api_error.CreateFormatError(api_error.DataNotFound, errorRepositoryIsEmptyMessage,
 			errorRepositoryIsEmptyDetail)
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(standardLoggerFormat, errorRepositoryIsEmptyMessage, errorRepositoryIsEmptyDetail)
 
 		return []domain.Reservation{}, errors.New(formattedError)
 	}
 
 	err = cur.Close(context.TODO())
 	if err != nil {
-		//Todo Warning
+		pkg.WarningLogger().Printf(unclosedConnectionWarning, err.Error())
 	}
 
 	return results, nil
@@ -90,24 +92,27 @@ func (r *ReservationRepositoryMongo) GetAllReservations() ([]domain.Reservation,
 
 func (r *ReservationRepositoryMongo) processError(err error, reservation domain.Reservation) error {
 	if strings.Contains(err.Error(), duplicateClientIDErrorFlag) {
-		formattedError := api_error.CreateFormatError(api_error.BusinessRule,
-			fmt.Sprintf(duplicateClientIDErrorMessage), fmt.Sprintf(duplicateClientIDErrorDetail, reservation.ClientId))
-		//ToDo add Logger
+		activeReservationDetail := fmt.Sprintf(duplicateClientIDErrorDetail, reservation.ClientId)
+		formattedError := api_error.CreateFormatError(api_error.BusinessRule, duplicateClientIDErrorMessage, activeReservationDetail)
+		pkg.ErrorLogger().Printf(standardLoggerFormat, activeReservationDetail, duplicateClientIDErrorMessage)
 
 		return errors.New(formattedError)
 
 	} else if strings.Contains(err.Error(), duplicateReservationErrorFlag) {
+
+		takenReservationDetail := fmt.Sprintf(duplicateReservationErrorDetail, reservation.Number)
 		formattedError := api_error.CreateFormatError(api_error.BusinessRule, duplicateReservationErrorMessage,
-			fmt.Sprintf(duplicateReservationErrorDetail, reservation.Number))
-		//ToDo add Logger
+			takenReservationDetail)
+		pkg.ErrorLogger().Printf(standardLoggerFormat, takenReservationDetail, duplicateReservationErrorMessage)
 
 		return errors.New(formattedError)
 
 	} else {
-		formattedError := api_error.CreateFormatError(api_error.ConnectionError,
-			fmt.Sprintf(genericErrorInsertMessage, reservation.ClientId, reservation.Number),
-			err.Error())
-		//ToDo add Logger
+
+		genericErrorDetail := fmt.Sprintf(genericErrorInsertMessage, reservation.ClientId, reservation.Number)
+		formattedError := api_error.CreateFormatError(api_error.ConnectionError, genericErrorDetail, err.Error())
+		pkg.ErrorLogger().Printf(standardLoggerFormat, genericErrorDetail, err.Error())
+
 		return errors.New(formattedError)
 	}
 }
