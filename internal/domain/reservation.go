@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"github.com/jdcd/numbers_reservation/pkg"
 	"os"
 	"strconv"
 
@@ -10,15 +11,18 @@ import (
 )
 
 const (
-	errorFormatClientID                 = "invalid clientID format"
-	errorDetailEmptyClientID            = "the field clientID cannot be empty"
-	errorDetailClientIDMaxLen           = "the maximum allowed size of the clientID is %d"
-	errorFormatNumber                   = "invalid number format"
-	errorInvalidNumber                  = "the available numbers are the range [1-%d]"
-	errorDetailNonPositiveInvalidNumber = "the number must be positive"
-	errorDetailZeroOrNotFoundNumber     = "the field number cannot be empty or 0"
-	defaultMaxClientIDLen               = 128
-	defaultMaxNumberValue               = 1000
+	errorFormatClientID                  = "invalid clientID format"
+	errorDetailEmptyClientID             = "the field clientID cannot be empty"
+	errorDetailClientIDMaxLen            = "the maximum allowed size of the clientID is %d"
+	loggerDetailClientIDMaxLen           = "cannot store clientID %s %s \n"
+	errorFormatNumber                    = "invalid number format"
+	errorInvalidValueNumber              = "the available numbers are the range [1-%d]"
+	loggerInvalidValueNumber             = "%d is out of range, %s \n"
+	errorDetailNonPositiveInvalidNumber  = "the number must be positive"
+	loggerDetailNonPositiveInvalidNumber = "the number %d must be positive \n"
+	errorDetailZeroOrNotFoundNumber      = "the field number cannot be empty or 0"
+	defaultMaxClientIDLen                = 128
+	defaultMaxNumberValue                = 1000
 )
 
 type Reservation struct {
@@ -42,7 +46,7 @@ func (r *Reservation) checkClientID() error {
 	if r.ClientId == "" {
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatClientID,
 			errorDetailEmptyClientID)
-		//ToDo add Logger
+		pkg.ErrorLogger().Println(errorDetailEmptyClientID)
 		return errors.New(formattedError)
 	}
 
@@ -50,7 +54,7 @@ func (r *Reservation) checkClientID() error {
 		lenError := fmt.Sprintf(errorDetailClientIDMaxLen, r.clientIDMaxLength())
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatClientID,
 			lenError)
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(loggerDetailClientIDMaxLen, r.ClientId, lenError)
 		return errors.New(formattedError)
 	}
 
@@ -62,22 +66,22 @@ func (r *Reservation) checkNumber() error {
 	if r.Number == 0 {
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
 			errorDetailZeroOrNotFoundNumber)
-		//ToDo add Logger
+		pkg.ErrorLogger().Println(errorDetailZeroOrNotFoundNumber)
 		return errors.New(formattedError)
 	}
 
 	if r.Number < 0 {
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
 			errorDetailNonPositiveInvalidNumber)
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(loggerDetailNonPositiveInvalidNumber, r.Number)
 		return errors.New(formattedError)
 	}
 
 	if r.Number > r.numberMaxValue() {
-		rangeError := fmt.Sprintf(errorInvalidNumber, r.numberMaxValue())
+		rangeError := fmt.Sprintf(errorInvalidValueNumber, r.numberMaxValue())
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber,
 			rangeError)
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf(loggerInvalidValueNumber, r.Number, rangeError)
 		return errors.New(formattedError)
 	}
 
@@ -88,7 +92,6 @@ func (r *Reservation) clientIDMaxLength() int {
 	maxLen := defaultMaxClientIDLen
 	envMaxLen, err := strconv.Atoi(os.Getenv("CLIENT_ID_MAX_LEN"))
 	if err == nil {
-		//ToDo add Logger
 		maxLen = envMaxLen
 	}
 	return maxLen
@@ -98,7 +101,6 @@ func (r *Reservation) numberMaxValue() int {
 	maxValue := defaultMaxNumberValue
 	intMaxValue, err := strconv.Atoi(os.Getenv("NUMBER_MAX_VALUE"))
 	if err == nil {
-		//ToDo add Logger
 		maxValue = intMaxValue
 	}
 	return maxValue

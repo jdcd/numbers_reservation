@@ -28,7 +28,7 @@ func TestWhenLenOfClientIDIsBiggerThanMaxLimitClientIDThenValidateShouldReturnEr
 // TestValidateInvalidNumber
 func TestWhenNumberIsBiggerThanMaxNumValueThenValidShouldReturnError(t *testing.T) {
 	t.Setenv("NUMBER_MAX_VALUE", "80")
-	detailedError := fmt.Sprintf(errorInvalidNumber, 80)
+	detailedError := fmt.Sprintf(errorInvalidValueNumber, 80)
 	fError := api_error.CreateFormatError(api_error.DataValidation, errorFormatNumber, detailedError)
 	expectedError := errors.New(fError)
 	r := &Reservation{ClientId: "four", Number: 81}

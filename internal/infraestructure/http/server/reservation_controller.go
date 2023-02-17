@@ -6,11 +6,13 @@ import (
 	"github.com/jdcd/numbers_reservation/internal/application"
 	"github.com/jdcd/numbers_reservation/internal/domain"
 	"github.com/jdcd/numbers_reservation/internal/domain/api_error"
+	"github.com/jdcd/numbers_reservation/pkg"
 	"net/http"
 )
 
 const (
-	encodingJsonError = "error reading your reservation"
+	encodingJsonError        = "error reading your reservation"
+	successfulCreationLogger = "clientId: %s with reservation %d creates successfully \n"
 )
 
 type ReservationController struct {
@@ -23,7 +25,8 @@ func (r ReservationController) PostReservation(c *gin.Context) {
 		formattedError := api_error.CreateFormatError(api_error.DataValidation, encodingJsonError, err.Error())
 		apiError := api_error.MapApiError(errors.New(formattedError))
 		c.IndentedJSON(apiError.Code, apiError)
-		//ToDo add Logger
+		pkg.ErrorLogger().Printf("%s, %s \n", encodingJsonError, err.Error())
+
 		return
 	}
 
@@ -39,6 +42,7 @@ func (r ReservationController) PostReservation(c *gin.Context) {
 		return
 	}
 
+	pkg.InfoLogger().Printf(successfulCreationLogger, newReservation.ClientId, newReservation.Number)
 	c.IndentedJSON(http.StatusCreated, newReservation)
 }
 

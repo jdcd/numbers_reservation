@@ -1,8 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jdcd/numbers_reservation/internal"
-	"log"
+	"github.com/jdcd/numbers_reservation/pkg"
 	"os"
 )
 
@@ -12,6 +13,7 @@ func main() {
 
 	err := router.Run()
 	if err != nil {
-		log.Fatal("unable to start app in ports ", port, err)
+		errorDetail := fmt.Sprintf("unable to start app on the port: %s , %s", port, err.Error())
+		pkg.ErrorLogger().Fatal(errorDetail)
 	}
 }
