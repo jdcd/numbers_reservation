@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: "app"
+    environment:
+      MONGO_URL: "mongodb://root:root123@db:27017/?tls=false"
+      DB_NAME: "numbers_reservation"
+      DB_COLLECTION: "reservations"
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  db:
+    image: mongo:6.0.4
+    container_name: "db"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+      MONGO_INITDB_DATABASE: numbers_reservation
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./migration/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
